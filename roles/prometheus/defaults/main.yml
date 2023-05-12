@@ -1,0 +1,4 @@
+---
+# defaults file for prometheus
+prometheus_configurator_host_name: monitoring-prometheus-configurator
+prometheus_configurator_port: 5000

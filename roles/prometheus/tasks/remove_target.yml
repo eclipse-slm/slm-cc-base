@@ -1,0 +1,10 @@
+---
+- name: Assert Input params
+  ansible.builtin.assert:
+    that:
+      - resource_id is defined and resource_id | length > 0
+
+- name: "Remove resource with id = \"{{ resource_id }}\""
+  ansible.builtin.uri:
+    url: "http://{{ prometheus_configurator_host_name }}:{{ prometheus_configurator_port }}/prometheus/slm-resource-target/{{ resource_id}}"
+    method: DELETE

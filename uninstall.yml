@@ -1,0 +1,32 @@
+---
+- name: "Create inventory with target host(s)"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: inventory_helper
+        tasks_from: create_single_host_inventory.yml
+
+- name: "Uninstall - FabOS Device"
+  hosts: all
+  gather_facts: yes
+  become: yes
+  vars:
+    state: absent
+  tasks:
+    - ansible.builtin.include_role:
+        name: "node_exporter"
+
+- name: "Remove host from Prometheus targets"
+  hosts: all
+  gather_facts: no
+  become: no
+  vars:
+    ansible_connection: local
+  tasks:
+    - ansible.builtin.include_role:
+        name: "prometheus"
+        tasks_from: remove_target.yml
+      vars:
+        node_exporter_port: 9100
