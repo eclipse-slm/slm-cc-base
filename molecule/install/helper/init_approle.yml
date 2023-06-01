@@ -1,0 +1,20 @@
+---
+- name: Create Auth Method for Approle
+  ansible.builtin.include_tasks: helper/create_approle_auth_method.yml
+
+- name: Create Approle
+  ansible.builtin.include_tasks: helper/create_approle.yml
+
+- name: Create Policies
+  ansible.builtin.include_tasks: helper/create_vault_policy.yml
+  vars:
+    policy_name: "{{ policy.name }}"
+    policy_content: "{{ policy.policy }}"
+  loop: "{{ approle_policies }}"
+  loop_control:
+    loop_var: policy
+
+- include_tasks: helper/add_policy_to_approle.yml
+  vars:
+    new_approle_token_policy: "{{ item.name }}"
+  loop: "{{ approle_policies }}"

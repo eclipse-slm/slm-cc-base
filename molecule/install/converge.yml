@@ -1,0 +1,10 @@
+- name: Lookup resource id
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Save resource id from env var
+      ansible.builtin.set_fact:
+        resource_id: "{{ lookup('env', 'RESOURCE_ID') }}"
+
+- name: Run install playbook
+  ansible.builtin.import_playbook: ../../install.yml

@@ -1,0 +1,9 @@
+---
+- name: Cleanup
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Remove .env file
+      ansible.builtin.file:
+        path: "{{ molecule_scenario_directory }}/.env"
+        state: absent

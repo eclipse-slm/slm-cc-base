@@ -1,0 +1,181 @@
+- name: Start consul, vault and prometheus server
+  hosts: consul-vault-prometheus-host
+  become: yes
+  gather_facts: yes
+  tasks:
+    - name: Load default vars
+      ansible.builtin.include_vars:
+        file: defaults/main.yml
+
+    - name: Get Host Server IP
+      ansible.builtin.set_fact:
+        consul_server_address: "{{ hostvars[groups['consul'] | first].ansible_host }}"
+
+    - name: "Start via Docker Compose"
+      community.docker.docker_compose:
+        state: "present"
+        project_name: "consul-vault-prometheus"
+        definition: "{{ lookup('template', './docker-compose.yml.j2') | from_yaml }}"
+      register: docker_compose
+      retries: 5
+      delay: 5
+      until: docker_compose.failed == false
+
+    - name: Wait for ports
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        delay: 5
+      loop:
+        - "{{ consul_port }}"
+        - "{{ vault_port }}"
+        - "{{ prometheus_port }}"
+
+- name: Add resource data to Consul and Vault
+  hosts: consul-vault-prometheus-host
+  become: no
+  gather_facts: no
+  tasks:
+    - name: Set target-host facts
+      ansible.builtin.set_fact:
+        target_host_ip: "{{ hostvars[groups['target_host'] | first].ansible_host }}"
+        target_host_username: ansible
+        target_host_password: password
+
+    ###
+    # CONSUL:
+    ###
+    - name: Add target-host to consul
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}:{{ consul_port }}/v1/catalog/register"
+        method: PUT
+        body_format: json
+        body:
+          ID: "{{ resource_id }}"
+          Node: "{{ resource_name }}"
+          Datacenter: "{{ consul_datacenter }}"
+          Address: "{{ target_host_ip }}"
+
+#    - name: Get Node infos
+#      ansible.builtin.uri:
+#        url: "http://{{ ansible_host }}:{{ consul_port }}/v1/catalog/nodes?filter=Node==\"{{resource_name}}\""
+#        method: GET
+#      register: consul_node_info_response
+#
+#    - debug:
+#        var: consul_node_info_response
+
+#
+#    - fail:
+
+    - name: Add RemoteAccessService to target-host's consul entry
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}:{{ consul_port }}/v1/catalog/register"
+        method: PUT
+        body_format: json
+        body:
+          Node: "{{ resource_name }}"
+          Address: "{{ target_host_ip }}"
+          SkipNodeUpdate: true
+          Service:
+            ID: "{{ resource_remote_access_service.id }}"
+            Service: "{{ resource_remote_access_service.name }}"
+            Tags: "{{ resource_remote_access_service.tags }}"
+
+    ###
+    # VAULT:
+    ###
+    - name: Set Vault Url as fact
+      ansible.builtin.set_fact:
+        vault_url: http://{{ ansible_host }}:{{ vault_port }}
+
+    - name: Init Vault AppRole
+      ansible.builtin.include_tasks: helper/init_approle.yml
+      vars:
+        approle_name: "{{ approle.name }}"
+        approle_policies: "{{ approle.policies }}"
+        config_store_directory: "{{ approle.config_store_directory }}"
+      loop: "{{ vault_approles }}"
+      loop_control:
+        loop_var: approle
+
+    - name: Add resource KV v2 Secret Engine
+      ansible.builtin.uri:
+        url: "{{ vault_url }}/v1/sys/mounts/{{ item.key }}"
+        validate_certs: no
+        method: POST
+        headers:
+          Authorization: "Bearer {{ vault_token }}"
+        body_format: json
+        body: "{{ item.value }}"
+        status_code: 204, 400
+      loop: "{{ vault_secret_engines | dict2items }}"
+      register: output_create_kv_secret_engine
+      changed_when: output_create_kv_secret_engine.status == 204
+
+    - name: Add secrets of resource
+      ansible.builtin.uri:
+        url: "{{ vault_url }}/v1/{{ vault_resources_secret_engine }}/data/{{ resource_remote_access_service.id }}/CredentialUsernamePassword"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ vault_token }}"
+        body_format: json
+        body:
+          data:
+            username: "{{ target_host_username }}"
+            password: "{{ target_host_password }}"
+
+- name: Set environment variables
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Load default vars
+      ansible.builtin.include_vars:
+        file: defaults/main.yml
+
+    - name: Set name of Vault AppRole
+      ansible.builtin.set_fact:
+        approle_name: awx
+
+    - name: Get Host Server IP
+      ansible.builtin.set_fact:
+        consul_server_address: "{{ hostvars[groups['consul'] | first].ansible_host }}"
+        vault_server_address: "{{ hostvars[groups['vault'] | first].ansible_host }}"
+
+    - name: "Create secret id for app role with id '{{ approle_name }}'"
+      uri:
+        url: "http://{{ vault_server_address }}:{{ vault_port }}/v1/auth/approle/role/{{ approle_name }}/secret-id"
+        validate_certs: no
+        method: POST
+        headers:
+          Authorization: "Bearer {{ vault_token }}"
+        status_code: 200, 204
+      register: request_secret_id
+      no_log: false
+
+    - name: "Set Approle ID and Secret ID of '{{ approle_name }}' approle"
+      ansible.builtin.set_fact:
+        role_id: "{{ approle_name }}"
+        secret_id: "{{ request_secret_id.json.data.secret_id }}"
+
+
+    - name: Add env vars to molecule.yml file
+      ansible.builtin.lineinfile:
+        path: "{{ molecule_scenario_directory }}/.env"
+        regexp: "{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        create: true
+      loop:
+        - key: "CONSUL_URL"
+          value: "http://{{ consul_server_address }}:{{ consul_port }}"
+        - key: "CONSUL_TOKEN"
+          value: "{{ consul_token }}"
+        - key: "VAULT_URL"
+          value: "http://{{ vault_server_address }}:{{ vault_port }}"
+        - key: VAULT_APPROLE_ROLE_ID
+          value: "{{ role_id }}"
+        - key: VAULT_APPROLE_SECRET_ID
+          value: "{{ secret_id }}"
+        - key: RESOURCE_ID
+          value: "{{ resource_id }}"

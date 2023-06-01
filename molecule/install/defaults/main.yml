@@ -1,0 +1,32 @@
+---
+resource_id: b0a21dfe-b111-4d52-8b31-6d0744490e8a
+resource_name: test-host
+resource_remote_access_service:
+  id: 5d32e5e2-0b08-4a21-9af8-f502cadccedf
+  name: ssh
+  tags:
+    - RemoteAccessService
+    - ssh
+
+consul_port: 8500
+consul_token: myroot
+consul_datacenter: fabos
+consul_domain: fabos
+
+vault_token: myroot
+vault_port: 8200
+vault_resources_secret_engine: resources
+vault_approle_auth_method_name: approle
+vault_approles:
+  - name: awx
+    policies:
+      - name: "awx"
+        policy: "path \"resources/*\" { capabilities = [\"read\", \"list\", \"create\", \"update\"] } \npath \"service-repositories/*\" { capabilities = [\"read\", \"list\"] }"
+vault_secret_engines:
+  resources:
+    type: kv
+    description: resources secret engine
+    options:
+      version: 2
+
+prometheus_port: 9090
