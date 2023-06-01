@@ -1,0 +1,5 @@
+### Get Catalog Nodes
+GET http://{{host}}:{{port}}/v1/catalog/nodes
+
+### Get Catalog Node by ID
+GET http://{{host}}:{{port}}/v1/catalog/nodes?filter=ID=="b0a21dfe-b111-4d52-8b31-6d0744490e8a"
