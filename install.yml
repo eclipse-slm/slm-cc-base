@@ -16,17 +16,8 @@
     - ansible.builtin.include_role:
         name: "node_exporter"
 
-- name: Delegate resource-id to all
-  hosts: localhost
-  gather_facts: no
-  become: no
-  tasks:
-    - name: Delegate resource-id
-      ansible.builtin.set_fact:
-        resource_id: "{{ resource_id }}"
-      delegate_facts: true
-      delegate_to: "{{ item }}"
-      loop: "{{ groups['all'] }}"
+    - ansible.builtin.include_role:
+        name: "basyx_server"
 
 - name: "Add host to Prometheus targets"
   hosts: all
