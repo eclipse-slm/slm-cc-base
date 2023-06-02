@@ -18,6 +18,9 @@
     - ansible.builtin.include_role:
         name: "node_exporter"
 
+    - ansible.builtin.include_role:
+        name: "basyx_server"
+
 - name: "Remove host from Prometheus targets"
   hosts: all
   gather_facts: no
