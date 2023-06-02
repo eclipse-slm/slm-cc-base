@@ -17,6 +17,6 @@ provisioner:
     destroy: ../default/destroy.yml
     # use converge.sh in root directory for converge
     converge:
-    cleanup: cleanup.yml
+    cleanup: ../default/cleanup.yml
 verifier:
   name: ansible
