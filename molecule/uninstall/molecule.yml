@@ -1,0 +1,22 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: delegated
+platforms:
+  - name: target-host
+    template_name: ubuntu-22-04
+    groups: ['ssh', 'target_host']
+  - name: consul-vault-prometheus-host
+    template_name: ubuntu-22-04-docker
+    groups: ['consul', 'vault', 'prometheus', 'prometheus-config']
+provisioner:
+  name: ansible
+  playbooks:
+    create: ../default/create.yml
+    destroy: ../default/destroy.yml
+    # use converge.sh in root directory for converge
+    converge:
+    cleanup: ../default/cleanup.yml
+verifier:
+  name: ansible
