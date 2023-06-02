@@ -1,0 +1,27 @@
+- name: Do prepare of 'install' scenario
+  ansible.builtin.import_playbook: ../install/prepare.yml
+
+- name: Load env vars file from 'install' prepare
+  hosts: localhost
+  gather_facts: no
+  become: no
+  tasks:
+    - name: Load vars from .env file
+      ansible.builtin.set_fact:
+        dot_env_file: "{{ lookup('file', '.env').split('\n') }}"
+
+    - name: Save content of .env to facts
+      ansible.builtin.set_fact:
+        resource_id: "{{ dot_env_file | select('match', '^RESOURCE_ID.*$') | first | split('=') | last }}"
+        prometheus_configurator_ip: "{{ dot_env_file | select('match', '^PROMETHEUS_CONFIGURATOR_IP.*$') | first | split('=') | last }}"
+
+- name: Do converge of 'install' scenario
+  hosts: localhost
+  gather_facts: no
+  become: no
+  tasks:
+    - name: Run converge skript
+      ansible.builtin.shell: export $(cat ./molecule/uninstall/.env | xargs) && ansible-playbook -e "resource_id={{ resource_id }}" -e "prometheus_configurator_host_name={{prometheus_configurator_ip}}" install.yml
+      args:
+        chdir: ../../
+        executable: /bin/bash
