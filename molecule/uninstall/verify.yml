@@ -1,0 +1,14 @@
+---
+- name: Verify uninstall
+  hosts: target_host
+  gather_facts: no
+  tasks:
+    - name: Check ports unavailable
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        delay: 5
+        state: absent
+      loop:
+        - "9100"
+        - "4001"
+#        - "8500"
