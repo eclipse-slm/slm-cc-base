@@ -9,7 +9,7 @@ platforms:
     groups: ['ssh', 'target_host']
   - name: consul-vault-prometheus-host
     template_name: ubuntu-22-04-docker
-    groups: ['consul', 'vault', 'prometheus']
+    groups: ['consul', 'vault', 'prometheus', 'prometheus-config']
 provisioner:
   name: ansible
   playbooks:
