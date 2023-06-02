@@ -5,14 +5,18 @@ show_help() {
 }
 
 verbosity=
+extra_vars=
 
-while getopts "s:hv" opt; do
+while getopts "s:hve:" opt; do
   case "$opt" in
     s)
       scenario="${OPTARG}"
       ;;
     v)
       verbosity="-vvv"
+      ;;
+    e)
+      extra_vars="-e ${OPTARG}"
       ;;
     ?|h)
       show_help
@@ -53,7 +57,7 @@ ansible-galaxy install -f -r ./roles/requirements.yml
 env_file_path="${scenario_folder}/.env"
 
 # Run Converge of scenario with env vars from .env file
-export $(cat $env_file_path | xargs) && ansible-playbook $verbosity $scenario_converge_full_path
+export $(cat $env_file_path | xargs) && ansible-playbook $extra_vars $verbosity $scenario_converge_full_path
 
 
 
