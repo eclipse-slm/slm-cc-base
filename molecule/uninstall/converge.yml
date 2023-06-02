@@ -1,0 +1,27 @@
+- name: Lookup resource id
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Save resource id from env var
+      ansible.builtin.set_fact:
+        resource_id: "{{ lookup('env', 'RESOURCE_ID') }}"
+
+- name: "Create inventory with target host(s)"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - ansible.builtin.include_role:
+        name: ../../roles/inventory_helper
+        tasks_from: create_single_host_inventory.yml
+
+    - name: Delegate resource_id and hostname of prometheus-configurator
+      ansible.builtin.set_fact:
+        prometheus_configurator_host_name: "{{ lookup('env', 'PROMETHEUS_CONFIGURATOR_IP') }}"
+        resource_id: "{{ resource_id }}"
+      delegate_facts: true
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['all'] }}"
+
+- name: Run uninstall playbook
+  ansible.builtin.import_playbook: ../../uninstall.yml
