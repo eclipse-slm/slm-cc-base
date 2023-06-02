@@ -4,3 +4,11 @@ roles:
     scm: git
     version: main
     name: node_exporter
+  - src: "git+https://github.com/eclipse-slm/slm-ansible-role-basyx-server"
+    scm: git
+    version: main
+    name: basyx_server
+  - src: "git+https://github.com/eclipse-slm/slm-ansible-role-consul"
+    scm: git
+    version: main
+    name: consul
