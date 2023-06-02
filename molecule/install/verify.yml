@@ -1,0 +1,13 @@
+---
+- name: Verify install
+  hosts: target_host
+  gather_facts: no
+  tasks:
+    - name: Check ports available
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        delay: 5
+      loop:
+        - "9100"
+        - "4001"
+#        - "8500"
