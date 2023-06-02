@@ -30,3 +30,4 @@ vault_secret_engines:
       version: 2
 
 prometheus_port: 9090
+prometheus_configurator_port: 5000
