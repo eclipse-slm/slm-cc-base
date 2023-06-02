@@ -2,6 +2,8 @@
   hosts: consul-vault-prometheus-host
   become: yes
   gather_facts: yes
+  vars:
+    docker_compose_project_src: /tmp/docker-compose
   tasks:
     - name: Load default vars
       ansible.builtin.include_vars:
@@ -11,11 +13,30 @@
       ansible.builtin.set_fact:
         consul_server_address: "{{ hostvars[groups['consul'] | first].ansible_host }}"
 
+    - name: Create docker-compose folder on remote
+      ansible.builtin.file:
+        path: "{{ docker_compose_project_src }}/config"
+        state: directory
+
+    - name: Upload docker-compose file
+      ansible.builtin.template:
+        src: docker-compose.yml.j2
+        dest: "{{ docker_compose_project_src }}/docker-compose.yml"
+
+    - name: Upload additional files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - src: prometheus.yml
+          dest: "{{ docker_compose_project_src }}/config/prometheus.yml"
+
     - name: "Start via Docker Compose"
       community.docker.docker_compose:
         state: "present"
         project_name: "consul-vault-prometheus"
-        definition: "{{ lookup('template', './docker-compose.yml.j2') | from_yaml }}"
+        project_src: "{{ docker_compose_project_src }}"
+#        definition: "{{ lookup('template', './docker-compose.yml.j2') | from_yaml }}"
       register: docker_compose
       retries: 5
       delay: 5
@@ -54,18 +75,6 @@
           Node: "{{ resource_name }}"
           Datacenter: "{{ consul_datacenter }}"
           Address: "{{ target_host_ip }}"
-
-#    - name: Get Node infos
-#      ansible.builtin.uri:
-#        url: "http://{{ ansible_host }}:{{ consul_port }}/v1/catalog/nodes?filter=Node==\"{{resource_name}}\""
-#        method: GET
-#      register: consul_node_info_response
-#
-#    - debug:
-#        var: consul_node_info_response
-
-#
-#    - fail:
 
     - name: Add RemoteAccessService to target-host's consul entry
       ansible.builtin.uri:
@@ -142,6 +151,7 @@
       ansible.builtin.set_fact:
         consul_server_address: "{{ hostvars[groups['consul'] | first].ansible_host }}"
         vault_server_address: "{{ hostvars[groups['vault'] | first].ansible_host }}"
+        prometheus_configurator_address: "{{ hostvars[groups['prometheus-config'] | first].ansible_host }}"
 
     - name: "Create secret id for app role with id '{{ approle_name }}'"
       uri:
@@ -179,3 +189,5 @@
           value: "{{ secret_id }}"
         - key: RESOURCE_ID
           value: "{{ resource_id }}"
+        - key: PROMETHEUS_CONFIGURATOR_IP
+          value: "{{ prometheus_configurator_address }}"
