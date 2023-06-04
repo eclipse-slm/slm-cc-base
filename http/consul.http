@@ -1,5 +1,24 @@
 ### Get Catalog Nodes
-GET http://{{host}}:{{port}}/v1/catalog/nodes
+GET http://{{host-server}}:{{port}}/v1/catalog/nodes
 
 ### Get Catalog Node by ID
-GET http://{{host}}:{{port}}/v1/catalog/nodes?filter=ID=="b0a21dfe-b111-4d52-8b31-6d0744490e8a"
+GET http://{{host-server}}:{{port}}/v1/catalog/nodes?filter=ID=="b0a21dfe-b111-4d52-8b31-6d0744490e8a"
+
+### PUT Catalog Service
+PUT http://{{host-client}}:8500/v1/agent/service/register
+Content-Type: application/json
+
+{
+  "Address": "10.1.9.35",
+  "ID": "5d32e5e2-0b08-4a21-9af8-f502cadccedf",
+  "Meta": {},
+  "Name": "ssh",
+  "Tags": [
+    "RemoteAccessService",
+    "ssh"
+  ],
+  "Weights": {
+    "Passing": 1,
+    "Warning": 1
+  }
+}
