@@ -5,10 +5,11 @@
   tasks:
     - name: Check ports unavailable
       ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
         port: "{{ item }}"
-        delay: 5
+        timeout: 30
         state: absent
       loop:
         - "9100"
         - "4001"
-#        - "8500"
+        - "8500"
