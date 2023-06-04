@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 show_help() {
-  echo "Usage... $(basename $0) [-s scenario-name] [-h]"
+  echo "Usage... $(basename $0) [-v] [-e] [-s scenario-name] [-h]"
 }
 
 verbosity=
