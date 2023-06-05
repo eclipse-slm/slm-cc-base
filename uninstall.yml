@@ -21,6 +21,9 @@
     - ansible.builtin.include_role:
         name: "basyx_server"
 
+#    - ansible.builtin.include_role:
+#        name: "consul"
+
 - name: "Remove host from Prometheus targets"
   hosts: all
   gather_facts: no
