@@ -19,17 +19,17 @@
     - ansible.builtin.include_role:
         name: "basyx_server"
 
-#    - name: Install consul client
-#      block:
-#        - name: Get Consul Server IP
-#          ansible.builtin.set_fact:
-#            consul_server_ip: "{{ lookup('env', 'CONSUL_URL') | urlsplit('hostname') }}"
-#
-#        - ansible.builtin.include_role:
-#            name: "consul"
-#          vars:
-#            consul_servers_list: "{{ [consul_server_ip] }}"
-#            consul_client_node_id: "{{ resource_id }}"
+    - name: Install consul client
+      block:
+        - name: Get Consul Server IP
+          ansible.builtin.set_fact:
+            consul_server_ip: "{{ lookup('env', 'CONSUL_URL') | urlsplit('hostname') }}"
+
+        - ansible.builtin.include_role:
+            name: "consul"
+          vars:
+            consul_servers_list: "{{ [consul_server_ip] }}"
+            consul_client_node_id: "{{ resource_id }}"
 
 - name: "Add host to Prometheus targets"
   hosts: all
