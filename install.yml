@@ -8,6 +8,25 @@
         name: inventory_helper
         tasks_from: create_single_host_inventory.yml
 
+    - name: GET /catalog/service/consul
+      ansible.builtin.uri:
+        url: "{{ lookup('env', 'CONSUL_URL') }}/v1/catalog/service/consul"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('env', 'CONSUL_TOKEN') }}"
+      register: get_consul_service_nodes
+
+    - name: Set public consul server ip
+      ansible.builtin.set_fact:
+        consul_public_server_ip: "{{ get_consul_service_nodes.json | map(attribute='Address') | default([]) | first }}"
+
+    - name: Set public consul server url
+      ansible.builtin.set_fact:
+        consul_public_server_url: "http://{{consul_public_server_ip}}:8500"
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['all'] }}"
+
 - name: "Install - FabOS Device"
   hosts: all
   gather_facts: yes
@@ -23,7 +42,7 @@
       ansible.builtin.include_role:
         name: "consul"
       vars:
-        consul_url: "{{ lookup('env', 'CONSUL_URL') }}"
+        consul_url: "{{ consul_public_server_url }}"
         consul_client_node_id: "{{ resource_id }}"
 
 - name: "Add host to Prometheus targets"
