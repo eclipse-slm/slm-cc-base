@@ -43,6 +43,7 @@
         name: "consul"
       vars:
         consul_url: "{{ consul_public_server_url }}"
+        consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
         consul_client_node_id: "{{ resource_id }}"
 
 - name: "Add host to Prometheus targets"
