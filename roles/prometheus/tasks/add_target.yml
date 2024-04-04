@@ -22,7 +22,6 @@
     body:
       ID: "{{ resource_id }}"
       Node: "{{ resource_name }}"
-      Datacenter: "{{ consul_datacenter }}"
       Service:
         Service: "node_exporter"
         Port: "{{ node_exporter_port }}"

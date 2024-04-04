@@ -65,7 +65,7 @@
     ip_address: "{{ node_info.Address }}"
     username: "{{ lookup('hashi_vault', '{{ vault_lookup_base_info }} secret=resources/data/{{ remote_access_service.ID }}/CredentialUsernamePassword:username') }}"
     password: "{{ lookup('hashi_vault', '{{ vault_lookup_base_info }} secret=resources/data/{{ remote_access_service.ID }}/CredentialUsernamePassword:password') }}"
-  no_log: false
+  no_log: true
 
 - name: Setup ansible inventory
   add_host:
