@@ -20,15 +20,7 @@
     method: GET
     headers:
       Authorization: "Bearer {{ consul_token }}"
-  register: consul_nodes
-
-- name: Print the gateway for each host when defined
-  ansible.builtin.debug:
-    msg: "{{consul_nodes}}"
-
-- name: Print the gateway for each host when defined
-  ansible.builtin.debug:
-    msg: "{{ consul_nodes[0]['Node'] }}"
+  register: consul_node
 
 - name: Add resource to consul
   ansible.builtin.uri:
@@ -37,8 +29,8 @@
     body_format: json
     body:
       ID: "{{ resource_id }}"
-      NODE: "{{ consul_nodes[0]['Node'] }}"
-      Address: "{{ consul_nodes[0]['Address'] }}"
+      NODE: "{{ consul_node['json'][0]['Node'] }}"
+      Address: "{{ consul_node['json'][0]['Address'] }}"
       Service:
         Service: "node_exporter"
         Port: "{{ node_exporter_port }}"
