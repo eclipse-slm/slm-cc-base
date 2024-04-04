@@ -16,11 +16,29 @@
 
 - name: Add resource to consul
   ansible.builtin.uri:
+    url: "{{consul_url}}/v1/catalog/nodes?filter='ID == {{resource_id}}'"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ consul_token }}"
+    register: consul_nodes
+
+- name: Print the gateway for each host when defined
+  ansible.builtin.debug:
+    msg: "{{consul_nodes}}"
+
+- name: Print the gateway for each host when defined
+  ansible.builtin.debug:
+    msg: "{{ consul_nodes[0]['Node'] }}"
+
+- name: Add resource to consul
+  ansible.builtin.uri:
     url: "{{consul_url}}/v1/catalog/register"
     method: PUT
     body_format: json
     body:
       ID: "{{ resource_id }}"
+      NODE: "{{ consul_nodes[0]['Node'] }}"
+      Address: "{{ consul_nodes[0]['Address'] }}"
       Service:
         Service: "node_exporter"
         Port: "{{ node_exporter_port }}"
