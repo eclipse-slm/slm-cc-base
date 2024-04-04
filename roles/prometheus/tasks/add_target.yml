@@ -20,7 +20,7 @@
     method: GET
     headers:
       Authorization: "Bearer {{ consul_token }}"
-    register: consul_nodes
+  register: consul_nodes
 
 - name: Print the gateway for each host when defined
   ansible.builtin.debug:
