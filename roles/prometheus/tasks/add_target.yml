@@ -21,7 +21,6 @@
     body_format: json
     body:
       ID: "{{ resource_id }}"
-      Node: "{{ resource_name }}"
       Service:
         Service: "node_exporter"
         Port: "{{ node_exporter_port }}"
