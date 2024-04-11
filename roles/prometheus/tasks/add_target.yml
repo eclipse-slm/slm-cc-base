@@ -28,6 +28,6 @@
         Tags:
           - "prometheus"
         Meta:
-          slm_id: "{{ resource_id }}"
+          - slm_id: "{{ resource_id }}"
     headers:
       Authorization: "Bearer {{ consul_token }}"
