@@ -5,12 +5,29 @@
       - resource_id is defined and resource_id | length > 0
       - node_exporter_port is defined
 
-- name: Add resource to prometheus
+- name: Get consul node
   ansible.builtin.uri:
-    url: "http://{{ prometheus_configurator_host_name }}:{{ prometheus_configurator_port }}/prometheus/slm-resource-target"
-    method: POST
-    body_format: form-urlencoded
-    body:
-      slm_id: "{{ resource_id }}"
-      url: "{{ ansible_host }}:{{ node_exporter_port }}"
+    url: "{{consul_url}}/v1/catalog/nodes?filter=ID==\"{{resource_id}}\""
+    method: GET
+    headers:
+      Authorization: "Bearer {{ consul_token }}"
+  register: consul_node
 
+- name: Add service to consul node
+  ansible.builtin.uri:
+    url: "{{consul_url}}/v1/catalog/register"
+    method: PUT
+    body_format: json
+    body:
+      ID: "{{ resource_id }}"
+      NODE: "{{ consul_node['json'][0]['Node'] }}"
+      Address: "{{ consul_node['json'][0]['Address'] }}"
+      Service:
+        Service: "node_exporter"
+        Port: "{{ node_exporter_port }}"
+        Tags:
+          - "prometheus"
+        Meta:
+          resource_id: "{{ resource_id }}"
+    headers:
+      Authorization: "Bearer {{ consul_token }}"
