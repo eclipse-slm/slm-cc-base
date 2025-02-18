@@ -37,8 +37,8 @@
     - ansible.builtin.include_role:
         name: "node_exporter"
 
-    - ansible.builtin.include_role:
-        name: "basyx_server"
+    #- ansible.builtin.include_role:
+    #    name: "basyx_server"
 
     - ansible.builtin.include_role:
         name: "consul"
