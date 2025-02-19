@@ -58,3 +58,6 @@
         tasks_from: add_target.yml
       vars:
         node_exporter_port: 9100
+        consul_url: "{{ consul_public_server_url }}"
+        consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
+        consul_client_node_id: "{{ resource_id }}"
