@@ -4,14 +4,7 @@
     that:
       - resource_id is defined and resource_id | length > 0
 
-- name: Remove service from consul node
+- name: "Remove resource with id = \"{{ resource_id }}\""
   ansible.builtin.uri:
-    url: "{{consul_url}}/v1/catalog/deregister"
-    method: PUT
-    body_format: json
-    body:
-      NODE: "{{ resource_id }}"
-      ServiceID: "node_exporter"
-
-    headers:
-      Authorization: "Bearer {{ consul_token }}"
+    url: "http://{{ prometheus_configurator_host_name }}:{{ prometheus_configurator_port }}/prometheus/slm-resource-target/{{ resource_id}}"
+    method: DELETE
