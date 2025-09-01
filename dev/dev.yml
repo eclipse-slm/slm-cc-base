@@ -1,0 +1,8 @@
+- hosts: localhost
+  tasks:
+  - set_fact:
+      service_name: "{{ lookup('env', 'SERVICE_NAME') }}"
+      supported_connection_types: "{{ lookup('env', 'SUPPORTED_CONNECTION_TYPES') }}"
+      keycloak_token: "{{ lookup('env', 'KEYCLOAK_TOKEN') }}"
+
+- import_playbook: ../install.yml

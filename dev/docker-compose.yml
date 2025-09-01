@@ -1,0 +1,20 @@
+# docker compose run --rm --entrypoint /bin/bash dev-container
+# ansible-galaxy install -r /src/requirements.yml
+# ansible-playbook -v /src/dev/dev.yml
+
+services:
+  dev-container:
+    build: ..
+    image: ghcr.io/eclipse-slm/ansible:2.17.2
+    environment:
+      CONSUL_URL: http://slm.local:8500
+      CONSUL_TOKEN: your-consol-token
+      VAULT_URL: http://slm.local:8200
+      SERVICE_NAME: base-config_1796cfb2-2641-42ca-884f-b890a396a892
+      SUPPORTED_CONNECTION_TYPES: "[ 'WinSsh', 'ssh' ]"
+      KEYCLOAK_TOKEN: your-keycloak-token
+    volumes:
+      - "../:/src"
+    extra_hosts:
+      - "slm.local:host-gateway"
+
