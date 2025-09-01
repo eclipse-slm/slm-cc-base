@@ -4,9 +4,9 @@
   connection: local
   gather_facts: no
   tasks:
-    - include_role:
+    - name: Use inventory Helper to setup ansible inventory
+      ansible.builtin.include_role:
         name: inventory_helper
-        tasks_from: create_single_host_inventory.yml
 
     - name: GET /catalog/service/consul
       ansible.builtin.uri:
@@ -27,16 +27,13 @@
       delegate_facts: true
       loop: "{{ groups['all'] }}"
 
-- name: "Install - FabOS Device"
+- name: "Install capability"
   hosts: all
   gather_facts: yes
   become: yes
   tasks:
     - ansible.builtin.include_role:
         name: "node_exporter"
-
-    #- ansible.builtin.include_role:
-    #    name: "basyx_server"
 
     - name: Install consul client
       ansible.builtin.include_role:
