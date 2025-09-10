@@ -53,7 +53,6 @@
         name: "prometheus"
         tasks_from: add_target.yml
       vars:
-        node_exporter_port: 9100
-        consul_url: "{{ consul_url }}"
-        consul_token: "{{ consul_token }}"
-        consul_client_node_id: "{{ resource_id }}"
+        _node_exporter_port: 9100
+        _consul_url: "{{ consul_url }}"
+        _consul_token: "{{ consul_token }}"

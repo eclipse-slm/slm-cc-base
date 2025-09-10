@@ -6,7 +6,7 @@
 
 - name: Remove service from consul node
   ansible.builtin.uri:
-    url: "{{consul_url}}/v1/catalog/deregister"
+    url: "{{ _consul_url }}/v1/catalog/deregister"
     method: PUT
     body_format: json
     body:
@@ -14,4 +14,4 @@
       ServiceID: "node_exporter"
 
     headers:
-      Authorization: "Bearer {{ consul_token }}"
+      Authorization: "Bearer {{ _consul_token }}"

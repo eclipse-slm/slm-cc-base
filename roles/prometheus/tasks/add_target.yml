@@ -7,15 +7,15 @@
 
 - name: Get consul node
   ansible.builtin.uri:
-    url: "{{consul_url}}/v1/catalog/nodes?filter=ID==\"{{resource_id}}\""
+    url: "{{ _consul_url }}/v1/catalog/nodes?filter=ID==\"{{ resource_id }}\""
     method: GET
     headers:
-      Authorization: "Bearer {{ consul_token }}"
+      Authorization: "Bearer {{ _consul_token }}"
   register: consul_node
 
 - name: Add service to consul node
   ansible.builtin.uri:
-    url: "{{consul_url}}/v1/catalog/register"
+    url: "{{ _consul_url }}/v1/catalog/register"
     method: PUT
     body_format: json
     body:
@@ -24,10 +24,10 @@
       Address: "{{ consul_node['json'][0]['Address'] }}"
       Service:
         Service: "node_exporter"
-        Port: "{{ node_exporter_port }}"
+        Port: "{{ _node_exporter_port }}"
         Tags:
           - "prometheus"
         Meta:
           resource_id: "{{ resource_id }}"
     headers:
-      Authorization: "Bearer {{ consul_token }}"
+      Authorization: "Bearer {{ _consul_token }}"
