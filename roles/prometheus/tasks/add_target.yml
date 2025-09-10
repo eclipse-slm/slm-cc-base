@@ -3,7 +3,9 @@
   ansible.builtin.assert:
     that:
       - resource_id is defined and resource_id | length > 0
-      - node_exporter_port is defined
+      - _node_exporter_port is defined
+      - _consul_url is defined
+      - _consul_token is defined
 
 - name: Get consul node
   ansible.builtin.uri:
