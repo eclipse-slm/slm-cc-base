@@ -19,11 +19,14 @@
   ansible.builtin.uri:
     url: "{{ _consul_url }}/v1/catalog/register"
     method: PUT
+    headers:
+      Authorization: "Bearer {{ _consul_token }}"
     body_format: json
     body:
       ID: "{{ resource_id }}"
-      NODE: "{{ consul_node['json'][0]['Node'] }}"
+      Node: "{{ consul_node['json'][0]['Node'] }}"
       Address: "{{ consul_node['json'][0]['Address'] }}"
+      SkipNodeUpdate: true
       Service:
         Service: "node_exporter"
         Port: "{{ _node_exporter_port }}"
@@ -31,5 +34,3 @@
           - "prometheus"
         Meta:
           resource_id: "{{ resource_id }}"
-    headers:
-      Authorization: "Bearer {{ _consul_token }}"
