@@ -11,9 +11,9 @@
   connection: local
   gather_facts: no
   tasks:
-    - ansible.builtin.include_role:
-        name: ../../roles/inventory_helper
-        tasks_from: create_single_host_inventory.yml
+    - name: Use inventory Helper to setup ansible inventory
+      ansible.builtin.include_role:
+        name: inventory_helper
 
     - name: Delegate resource_id and hostname of prometheus-configurator
       ansible.builtin.set_fact:
