@@ -1,4 +1,5 @@
-- assert:
+---
+- ansible.builtin.assert:
     that:
       - (vault_url is defined) and (vault_url|length > 0)
       - (vault_token is defined) and (vault_token|length > 0)
@@ -6,9 +7,9 @@
     fail_msg: "Variable must be defined and not empty"
 
 - name: "Create app role '{{ approle_name }}'"
-  uri:
+  ansible.builtin.uri:
     url: "{{ vault_url }}/v1/auth/approle/role/{{ approle_name }}"
-    validate_certs: no
+    validate_certs: false
     method: POST
     headers:
       Authorization: "Bearer {{ vault_token }}"
@@ -16,9 +17,9 @@
   no_log: false
 
 - name: "Set app role id to app role name '{{ approle_name }}'"
-  uri:
+  ansible.builtin.uri:
     url: "{{ vault_url }}/v1/auth/approle/role/{{ approle_name }}/role-id"
-    validate_certs: no
+    validate_certs: false
     method: POST
     headers:
       Authorization: "Bearer {{ vault_token }}"
@@ -29,9 +30,9 @@
   no_log: false
 
 - name: "Create secret id for app role with id '{{ approle_name }}'"
-  uri:
+  ansible.builtin.uri:
     url: "{{ vault_url }}/v1/auth/approle/role/{{ approle_name }}/secret-id"
-    validate_certs: no
+    validate_certs: false
     method: POST
     headers:
       Authorization: "Bearer {{ vault_token }}"
@@ -39,11 +40,13 @@
   register: request_secret_id
   no_log: false
 
-- set_fact:
+- name: "Set Approle ID and Secret ID of '{{ approle_name }}' approle"
+  ansible.builtin.set_fact:
     role_id: "{{ approle_name }}"
     secret_id: "{{ request_secret_id.json.data.secret_id }}"
 
 - name: "Store app role config into files"
+  when: (config_store_directory is defined) and (config_store_directory|length > 0)
   block:
     - name: "Ensures {{ config_store_directory }} dir exists"
       file:
@@ -57,5 +60,3 @@
       copy:
         content: "{{ secret_id }}"
         dest: "{{ config_store_directory }}/secret_id"
-  when: (config_store_directory is defined) and (config_store_directory|length > 0)
-
