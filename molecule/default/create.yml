@@ -3,18 +3,20 @@
   hosts: localhost
   gather_facts: false
   no_log: "{{ molecule_no_log }}"
-  become: no
+  become: false
   tasks:
 
     # TODO: Developer must implement and populate 'server' variable
-    - include_role:
+    - name: "Create server(s) for molecule scenario"
+      ansible.builtin.include_role:
         name: molecule_vsphere
         tasks_from: create.yml
 
-    - when: server.changed | default(false) | bool
+    - name: "Populate instance config file with server(s) information"
+      when: server.changed | default(false) | bool
       block:
         - name: Populate instance config dict
-          set_fact:
+          ansible.builtin.set_fact:
             instance_conf_dict: {
               'instance': "{{ item.instance }}",
               'address': "{{ item.address }}",
@@ -27,15 +29,15 @@
           register: instance_config_dict
 
         - name: Convert instance config dict to a list
-          set_fact:
+          ansible.builtin.set_fact:
             instance_conf: "{{ instance_config_dict.results | map(attribute='ansible_facts.instance_conf_dict') | list }}"
 
         - name: Dump instance config
-          copy:
+          ansible.builtin.copy:
             content: |
               # Molecule managed
 
               {{ instance_conf | to_json | from_json | to_yaml }}
             dest: "{{ molecule_instance_config }}"
-            mode: 0600
+            mode: "0600"
           delegate_to: localhost
