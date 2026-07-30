@@ -1,9 +1,11 @@
 - name: Start consul, vault and prometheus server
-  hosts: consul-vault-prometheus-host
-  become: yes
-  gather_facts: yes
+  hosts: consul_vault_prometheus_host
+  become: true
+  gather_facts: true
   vars:
     docker_compose_project_src: /tmp/docker-compose
+  roles:
+    - fabos.slm-ansible-role-docker
   tasks:
     - name: Load default vars
       ansible.builtin.include_vars:
@@ -32,11 +34,10 @@
           dest: "{{ docker_compose_project_src }}/config/prometheus.yml"
 
     - name: "Start via Docker Compose"
-      community.docker.docker_compose:
+      community.docker.docker_compose_v2:
         state: "present"
         project_name: "consul-vault-prometheus"
         project_src: "{{ docker_compose_project_src }}"
-#        definition: "{{ lookup('template', './docker-compose.yml.j2') | from_yaml }}"
       register: docker_compose
       retries: 5
       delay: 5
@@ -52,9 +53,9 @@
         - "{{ prometheus_port }}"
 
 - name: Add resource data to Consul and Vault
-  hosts: consul-vault-prometheus-host
-  become: no
-  gather_facts: no
+  hosts: consul_vault_prometheus_host
+  become: false
+  gather_facts: false
   tasks:
     - name: Set target-host facts
       ansible.builtin.set_fact:
@@ -136,8 +137,8 @@
 - name: Set environment variables
   hosts: localhost
   connection: local
-  gather_facts: no
-  become: yes
+  gather_facts: false
+  become: true
   tasks:
     - name: Load default vars
       ansible.builtin.include_vars:
@@ -154,9 +155,9 @@
         prometheus_configurator_address: "{{ hostvars[groups['prometheus-config'] | first].ansible_host }}"
 
     - name: "Create secret id for app role with id '{{ approle_name }}'"
-      uri:
+      ansible.builtin.uri:
         url: "http://{{ vault_server_address }}:{{ vault_port }}/v1/auth/approle/role/{{ approle_name }}/secret-id"
-        validate_certs: no
+        validate_certs: false
         method: POST
         headers:
           Authorization: "Bearer {{ vault_token }}"
@@ -191,3 +192,10 @@
           value: "{{ resource_id }}"
         - key: PROMETHEUS_CONFIGURATOR_IP
           value: "{{ prometheus_configurator_address }}"
+
+    - name: Print endpoint urls
+      ansible.builtin.debug:
+        msg:
+          - "Consul URL: http://{{ consul_server_address }}:{{ consul_port }}"
+          - "Vault URL: http://{{ vault_server_address }}:{{ vault_port }}"
+          - "Prometheus Configurator URL: http://{{ prometheus_configurator_address }}:{{ prometheus_port }}"
