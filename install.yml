@@ -2,14 +2,14 @@
 - name: "Create inventory with target host(s)"
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
   tasks:
     - name: Use inventory Helper to setup ansible inventory
       ansible.builtin.include_role:
         name: inventory_helper
 
-    - name:
-      set_fact:
+    - name: "Set Consul and SLM node facts"
+      ansible.builtin.set_fact:
         consul_url: "{{ lookup('env', 'CONSUL_URL') }}"
         consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
         slm_consul_node_name: "SLM"
@@ -23,11 +23,11 @@
       register: get_consul_slm_node
 
     - name: Set public consul server url for localhost
-      set_fact:
+      ansible.builtin.set_fact:
         consul_public_server_url: "{{ get_consul_slm_node.json.Node.Meta.consul_url }}"
 
     - name: Set public consul server url for all hosts
-      set_fact:
+      ansible.builtin.set_fact:
         consul_public_server_url: "{{ get_consul_slm_node.json.Node.Meta.consul_url }}"
       delegate_to: "{{ item }}"
       delegate_facts: true
@@ -35,8 +35,8 @@
 
 - name: "Install capability"
   hosts: all
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
   tasks:
     - ansible.builtin.include_role:
         name: "node_exporter"

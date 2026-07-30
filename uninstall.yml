@@ -9,15 +9,15 @@
         name: inventory_helper
 
     - name:
-      set_fact:
+      ansible.builtin.set_fact:
         consul_url: "{{ lookup('env', 'CONSUL_URL') }}"
         consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
         slm_consul_node_name: "SLM"
 
 - name: "Uninstall - FabOS Device"
   hosts: all
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
   vars:
     state: absent
   tasks:
