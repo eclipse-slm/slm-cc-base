@@ -10,8 +10,8 @@
 
     - name: "Set Consul and SLM node facts"
       ansible.builtin.set_fact:
-        consul_url: "{{ lookup('env', 'CONSUL_URL') }}"
-        consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
+        consul_url: "{{ consul_url | default(lookup('env', 'CONSUL_URL')) }}"
+        consul_token: "{{ consul_token | default(lookup('env', 'CONSUL_TOKEN')) }}"
         slm_consul_node_name: "SLM"
 
     - name: GET /catalog/service/consul
@@ -34,22 +34,22 @@
       loop: "{{ groups['all'] }}"
 
 - name: "Install capability"
-  hosts: all
+  hosts: "{{ target_hosts | default('all') }}"
   gather_facts: true
   become: true
-  tasks:
-    - ansible.builtin.include_role:
+  tasks:  
+    - name: "Install node_exporter"
+      ansible.builtin.include_role:
         name: "node_exporter"
 
 - name: "Add host to Prometheus targets"
   hosts: localhost
   connection: local
-  gather_facts: no
-  become: no
-  vars:
-    ansible_connection: local
+  gather_facts: false
+  become: false
   tasks:
-    - ansible.builtin.include_role:
+    - name: "Add host to Prometheus targets"
+      ansible.builtin.include_role:
         name: "prometheus"
         tasks_from: add_target.yml
       vars:
