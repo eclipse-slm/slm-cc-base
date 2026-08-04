@@ -1,0 +1,92 @@
+---
+dependency:
+  name: galaxy
+  options:
+    force: true
+    ignore-certs: false
+    ignore-errors: false
+    role-file: requirements.yml
+    requirements-file: requirements.yml
+
+platforms:
+  - name: slm-cc-base-target-host
+    groups:
+      - target_host
+    # Kubevirt
+    image: quay.io/containerdisks/ubuntu:24.04
+    volume_size: 20Gi
+    instancetype: u1.large
+    # Openstack
+    image_name: Ubuntu 24.04 64-bit
+    flavor: m1.large
+
+  - name: slm-cc-base-consul-vault-prometheus-host
+    groups:
+      - consul_vault_prometheus_host
+      - consul
+      - vault
+      - prometheus
+      - prometheus-config
+    # Kubevirt
+    image: quay.io/containerdisks/ubuntu:24.04
+    volume_size: 20Gi
+    instancetype: u1.large
+    # Openstack
+    image_name: Ubuntu 24.04 64-bit
+    flavor: m1.large
+
+  # Old vsphere platform definition, kept for reference
+  # - name: target-host
+  #   template_name: ubuntu-22-04
+  #   groups: ['ssh', 'target_host']
+  # - name: consul-vault-prometheus-host
+  #   template_name: ubuntu-22-04-docker
+  #   groups: ['consul', 'vault', 'prometheus', 'prometheus-config']
+
+ansible:
+  cfg:
+    defaults:
+      host_key_checking: false
+      verbosity: 1
+    ssh_connection:
+      pipelining: true
+  env:
+    ANSIBLE_FORCE_COLOR: "1"
+    ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+
+  executor:
+    backend: ansible-playbook
+    args:
+      ansible_playbook:
+        - --diff
+        - --force-handlers
+      ansible_navigator:
+        - --mode stdout
+        - --pull-policy missing
+        - --execution-environment-image ghcr.io/ansible/community-ansible-dev-tools:latest
+
+  playbooks:
+    create: ../default/create.yml
+    destroy: ../default/destroy.yml
+    # use converge.sh in root directory for converge
+    converge:
+    cleanup: ../default/cleanup.yml
+
+
+scenario:
+  name: uninstall
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
+  destroy_sequence:
+    - destroy

@@ -1,0 +1,11 @@
+---
+collections:
+  - name: https://github.com/eclipse-slm/ansible-collection-slm
+    type: git
+    version: main
+
+roles:
+  - src: "git+https://github.com/eclipse-slm/slm-ansible-role-slm-client"
+    scm: git
+    version: main
+    name: eclipse-slm.slm_client

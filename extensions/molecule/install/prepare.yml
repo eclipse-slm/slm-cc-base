@@ -1,0 +1,59 @@
+- name: Start consul, vault and prometheus server
+  hosts: consul_vault_prometheus_host
+  become: true
+  gather_facts: true
+  vars_files:
+    - defaults/main.yml
+  roles:
+    - fabos.slm-ansible-role-docker
+  tasks:
+    - name: Apply roles
+      ansible.builtin.include_role:
+        name: "{{ item.role }}"
+        tasks_from: "{{ item.tasks_from | default('main') }}"
+      vars:
+        # CONSUL/VAULT FACTS:
+        _consul_token: "{{ ENV.CONSUL.MASTER_TOKEN }}"
+        _store_compose_dir: "/install/deployment"
+        _vault_root_token: "{{ vault_root_token }}"
+        _vault_token: "{{ vault_root_token }}"
+        # RESOURCE FACTS:
+        _resource_id: "{{ resource_id }}"
+        _resource_name: "{{ resource_name }}"
+        _resource_address: "{{ resource_address }}"
+        _resource_remote_access_service_id: "{{ remote_access_service_id }}"
+        _resource_username: "{{ resource_username }}"
+        _resource_password: "{{ resource_password }}"
+      loop:
+        - role: eclipse.slm.env
+        - role: eclipse.slm.env
+          tasks_from: write_hosts
+        - role: eclipse.slm.vault
+        - role: eclipse.slm.consul
+          tasks_from: start
+        # TODO: Enable for getting consul/vault tokens via keycloak token
+        # - role: eclipse.slm.traefik
+        # - role: eclipse.slm.keycloak
+        # - role: "eclipse.slm.vault"
+        #   tasks_from: "init_after_keycloak.yml"
+        # - role: "eclipse.slm.consul"
+        - role: "eclipse.slm.monitoring"
+        - role: "eclipse-slm.slm_client"
+          tasks_from: create_resource
+
+    # Inventory helper looks for node named "SLM" and its' meta data
+    - name: "Consul Init | Create SLM node"
+      ansible.builtin.uri:
+        url: "http://consul:8500/v1/catalog/register"
+        method: PUT
+        headers:
+          X-Consul-Token: "{{ consul_master_token }}"
+        body_format: json
+        body:
+          Node: "SLM"
+          Address: "myhost.local"
+          NodeMeta:
+            slm_hostname: "myhost.local"
+            slm_ip: "{{ hostvars[groups['consul'] | first].ansible_host }}"
+            consul_url: "http://consul:8500"
+            vault_url: "http://vault:8200"

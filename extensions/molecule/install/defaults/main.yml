@@ -1,0 +1,40 @@
+---
+resource_id: "6e901402-a622-4957-ac79-41cece9141e8"
+resource_name: "target_host"
+resource_address: "{{ hostvars[groups['target_host'] | first].ansible_host }}"
+resource_username: molecule
+resource_password: password
+remote_access_service_id: "81d585f5-ea4f-4a3f-b361-4ba9ce8958f7"
+
+# resource_id: b0a21dfe-b111-4d52-8b31-6d0744490e8a
+# resource_name: test-host
+# resource_remote_access_service:
+#   id: 5d32e5e2-0b08-4a21-9af8-f502cadccedf
+#   name: ssh
+#   tags:
+#     - RemoteAccessService
+#     - ssh
+
+# consul_port: 8500
+# consul_token: myroot
+# consul_datacenter: fabos
+# consul_domain: fabos
+
+# vault_token: myroot
+# vault_port: 8200
+# vault_resources_secret_engine: resources
+# vault_approle_auth_method_name: approle
+# vault_approles:
+#   - name: awx
+#     policies:
+#       - name: "awx"
+#         policy: "path \"resources/*\" { capabilities = [\"read\", \"list\", \"create\", \"update\"] } \npath \"service-repositories/*\" { capabilities = [\"read\", \"list\"] }"
+# vault_secret_engines:
+#   resources:
+#     type: kv
+#     description: resources secret engine
+#     options:
+#       version: 2
+
+# prometheus_port: 9090
+# prometheus_configurator_port: 5000

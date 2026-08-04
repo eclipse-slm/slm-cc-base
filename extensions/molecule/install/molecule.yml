@@ -51,8 +51,21 @@ ansible:
     ssh_connection:
       pipelining: true
   env:
+    # ANSIBLE-SPECIFIC:
     ANSIBLE_FORCE_COLOR: "1"
     ANSIBLE_LOAD_CALLBACK_PLUGINS: "1"
+
+    # SLM-SPECIFIC:
+    SLM_HOSTNAME: myhost.local
+    SLM_IP: 172.17.0.1
+    SLM_VERSION: 1.5.0-SNAPSHOT
+    INSTALL_DIRECTORY: /opt/eclipse-slm
+
+    # ROLE-SPECIFIC:
+    # RESOURCE_ID: 6e901402-a622-4957-ac79-41cece9141e8
+    # RESOURCE_NAME: target_host
+    VAULT_URL: http://vault:8200
+    CONSUL_URL: http://consul:8500
 
   executor:
     backend: ansible-playbook
@@ -60,6 +73,7 @@ ansible:
       ansible_playbook:
         - --diff
         - --force-handlers
+        - -e target_hosts="all:!consul:!vault:!prometheus"
       ansible_navigator:
         - --mode stdout
         - --pull-policy missing
@@ -74,7 +88,7 @@ ansible:
     verify: verify.yml
 
 scenario:
-  name: install-root-ansible
+  name: install
   test_sequence:
     - dependency
     - cleanup

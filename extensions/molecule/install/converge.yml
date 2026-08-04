@@ -1,0 +1,66 @@
+- name: "Create inventory with target host(s)"
+  hosts: slm-cc-base-consul-vault-prometheus-host
+  gather_facts: false
+  become: true
+  pre_tasks:
+    - name: Apply vault/consul role for getting access tokens
+      ansible.builtin.include_role:
+        name: "{{ item.name }}"
+        tasks_from: "{{ item.tasks | default(omit) }}"
+      loop:
+        - name: eclipse.slm.env
+        - name: eclipse.slm.vault
+          tasks: get_root_token
+        - name: eclipse.slm.consul
+          tasks: get_master_token
+
+    - name: Delegate tokens
+      ansible.builtin.set_fact:
+        consul_master_token: "{{ consul_master_token }}"
+        vault_root_token: "{{ vault_root_token }}"
+        consul_token: "{{ consul_master_token }}"
+        vault_token: "{{ vault_root_token }}"
+      delegate_facts: true
+      delegate_to: localhost
+
+
+- name: "Create inventory with target host(s)"
+  # hosts: slm-cc-base-consul-vault-prometheus-host
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: true
+  vars_files:
+    - defaults/main.yml
+  pre_tasks:
+    # Ensure consul/vault lookups work on localhost
+    - name: Write Hosts to /etc/hosts on Control node
+      ansible.builtin.lineinfile:
+        path: "/etc/hosts"
+        line: "{{ item.ip }} {{ item.hostname }}"
+        regexp: '{{ item.hostname }}'
+      loop:
+        - ip: "{{ hostvars[groups['consul'] | first].ansible_host }}"
+          hostname: consul
+        - ip: "{{ hostvars[groups['vault'] | first].ansible_host }}"
+          hostname: vault
+  tasks:
+    - name: Set facts required by inventory helper role
+      ansible.builtin.set_fact:
+        service_name: "ssh"
+        supported_connection_types: ["ssh"]
+
+    - name: Use inventory Helper to setup ansible inventory
+      ansible.builtin.include_role:
+        name: inventory_helper
+
+    - name: Delegate resource_id and hostname of prometheus-configurator
+      ansible.builtin.set_fact:
+        prometheus_configurator_host_name: "{{ hostvars[groups['prometheus-config'] | first].ansible_host }}"
+        resource_id: "{{ resource_id }}"
+      delegate_facts: true
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['all'] }}"
+
+- name: Run install playbook
+  ansible.builtin.import_playbook: ../../../install.yml

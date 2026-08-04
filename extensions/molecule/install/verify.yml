@@ -1,0 +1,38 @@
+---
+- name: Verify - Install on target host(s)
+  hosts: target_host
+  gather_facts: false
+  vars:
+    expected_ports: 
+      - 9100 # Node Exporter
+  tasks:
+    - name: Check ports available
+      ansible.builtin.wait_for:
+        port: "{{ item }}"
+        timeout: 10
+      loop: "{{ expected_ports }}"
+
+
+- name: Verify - Target host(s) available in Prometheus
+  hosts: prometheus
+  gather_facts: false
+  vars:
+    prometheus_port: 9090
+    target_host_ip: "{{ hostvars[groups['target_host'] | first].ansible_host }}"
+  tasks:
+    - name: Request Promtheus targets at /api/v1/targets
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}:{{ prometheus_port }}/api/v1/targets?state=active"
+        method: GET
+        return_content: true
+      register: prometheus_targets_response
+
+    - name: Lookup target host in response
+      ansible.builtin.set_fact:
+        target_host_from_response: "{{ prometheus_targets_response.json.data.activeTargets | selectattr('labels.instance', 'equalto', target_host_ip ~ ':9100') | list }}"
+
+    - name: Assert target host is present in Prometheus targets
+      ansible.builtin.assert:
+        that:
+          - target_host_from_response | length > 0
+        fail_msg: "Target host {{ target_host_ip }} not found in Prometheus targets"
