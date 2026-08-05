@@ -37,7 +37,7 @@
   hosts: "{{ target_hosts | default('all') }}"
   gather_facts: true
   become: true
-  tasks:  
+  tasks:
     - name: "Install node_exporter"
       ansible.builtin.include_role:
         name: "node_exporter"
