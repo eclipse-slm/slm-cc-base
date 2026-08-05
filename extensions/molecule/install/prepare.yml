@@ -47,7 +47,7 @@
         url: "http://consul:8500/v1/catalog/register"
         method: PUT
         headers:
-          X-Consul-Token: "{{ consul_master_token }}"
+          X-Consul-Token: "{{ ENV.CONSUL.MASTER_TOKEN }}"
         body_format: json
         body:
           Node: "SLM"
