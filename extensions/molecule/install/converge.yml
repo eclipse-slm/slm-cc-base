@@ -50,10 +50,6 @@
         service_name: "ssh"
         supported_connection_types: ["ssh"]
 
-    - name: Use inventory Helper to setup ansible inventory
-      ansible.builtin.include_role:
-        name: inventory_helper
-
     - name: Delegate resource_id and hostname of prometheus-configurator
       ansible.builtin.set_fact:
         prometheus_configurator_host_name: "{{ hostvars[groups['prometheus-config'] | first].ansible_host }}"
