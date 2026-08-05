@@ -62,8 +62,6 @@ ansible:
     INSTALL_DIRECTORY: /opt/eclipse-slm
 
     # ROLE-SPECIFIC:
-    # RESOURCE_ID: 6e901402-a622-4957-ac79-41cece9141e8
-    # RESOURCE_NAME: target_host
     VAULT_URL: http://vault:8200
     CONSUL_URL: http://consul:8500
 
