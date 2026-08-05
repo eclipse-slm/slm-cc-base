@@ -1,4 +1,4 @@
-- name: "Create inventory with target host(s)"
+- name: "Converge | Lookup Access Tokens"
   hosts: slm-cc-base-consul-vault-prometheus-host
   gather_facts: false
   become: true
@@ -24,7 +24,7 @@
       delegate_to: localhost
 
 
-- name: "Create inventory with target host(s)"
+- name: "Converge | Create inventory with target host(s)"
   # hosts: slm-cc-base-consul-vault-prometheus-host
   hosts: localhost
   connection: local
