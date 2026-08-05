@@ -51,9 +51,9 @@
         body_format: json
         body:
           Node: "SLM"
-          Address: "myhost.local"
+          Address: "{{ lookup('env', 'SLM_HOSTNAME') }}"
           NodeMeta:
-            slm_hostname: "myhost.local"
+            slm_hostname: "{{ lookup('env', 'SLM_HOSTNAME') }}"
             slm_ip: "{{ hostvars[groups['consul'] | first].ansible_host }}"
             consul_url: "http://consul:8500"
             vault_url: "http://vault:8200"
