@@ -1,0 +1,58 @@
+---
+- name: "Create inventory with target host(s)"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Use inventory Helper to setup ansible inventory
+      ansible.builtin.include_role:
+        name: inventory_helper
+
+    - name: "Set Consul and SLM node facts"
+      ansible.builtin.set_fact:
+        consul_url: "{{ consul_url | default(lookup('env', 'CONSUL_URL')) }}"
+        consul_token: "{{ consul_token | default(lookup('env', 'CONSUL_TOKEN')) }}"
+        slm_consul_node_name: "SLM"
+
+    - name: GET /catalog/service/consul
+      ansible.builtin.uri:
+        url: "{{ consul_url }}/v1/catalog/node/{{ slm_consul_node_name }}"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ consul_token }}"
+      register: get_consul_slm_node
+
+    - name: Set public consul server url for localhost
+      ansible.builtin.set_fact:
+        consul_public_server_url: "{{ get_consul_slm_node.json.Node.Meta.consul_url }}"
+
+    - name: Set public consul server url for all hosts
+      ansible.builtin.set_fact:
+        consul_public_server_url: "{{ get_consul_slm_node.json.Node.Meta.consul_url }}"
+      delegate_to: "{{ item }}"
+      delegate_facts: true
+      loop: "{{ groups['all'] }}"
+
+- name: "Install capability"
+  hosts: "{{ target_hosts | default('all') }}"
+  gather_facts: true
+  become: true
+  tasks:  
+    - name: "Install node_exporter"
+      ansible.builtin.include_role:
+        name: "node_exporter"
+
+- name: "Add host to Prometheus targets"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  tasks:
+    - name: "Add host to Prometheus targets"
+      ansible.builtin.include_role:
+        name: "prometheus"
+        tasks_from: add_target.yml
+      vars:
+        _node_exporter_port: 9100
+        _consul_url: "{{ consul_url }}"
+        _consul_token: "{{ consul_token }}"

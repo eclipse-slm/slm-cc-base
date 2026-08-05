@@ -1,0 +1,40 @@
+---
+- name: "Create inventory with target host(s)"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Use inventory Helper to setup ansible inventory
+      ansible.builtin.include_role:
+        name: inventory_helper
+
+    - name:
+      ansible.builtin.set_fact:
+        consul_url: "{{ lookup('env', 'CONSUL_URL') }}"
+        consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
+        slm_consul_node_name: "SLM"
+
+- name: "Uninstall - FabOS Device"
+  hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    state: absent
+  tasks:
+    - ansible.builtin.include_role:
+        name: "node_exporter"
+
+- name: "Remove host from Prometheus targets"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  become: no
+  vars:
+    ansible_connection: local
+  tasks:
+    - ansible.builtin.include_role:
+        name: "prometheus"
+        tasks_from: remove_target.yml
+      vars:
+        _consul_url: "{{ consul_url }}"
+        _consul_token: "{{ consul_token }}"
