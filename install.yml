@@ -22,6 +22,9 @@
           Authorization: "Bearer {{ consul_token }}"
       register: get_consul_slm_node
 
+    - debug:
+        var: get_consul_slm_node
+
     - name: Set public consul server url for localhost
       ansible.builtin.set_fact:
         consul_public_server_url: "{{ get_consul_slm_node.json.Node.Meta.consul_url }}"
