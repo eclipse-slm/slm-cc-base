@@ -10,8 +10,8 @@
 
     - name: "Set Consul and SLM node facts"
       ansible.builtin.set_fact:
-        consul_url: "{{ default(lookup('env', 'CONSUL_URL')) }}"
-        consul_token: "{{ default(lookup('env', 'CONSUL_TOKEN')) }}"
+        consul_url: "{{ lookup('env', 'CONSUL_URL') }}"
+        consul_token: "{{ lookup('env', 'CONSUL_TOKEN') }}"
         slm_consul_node_name: "SLM"
 
     - name: GET /catalog/service/consul
