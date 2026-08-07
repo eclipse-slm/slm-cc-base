@@ -8,13 +8,10 @@
       ansible.builtin.include_role:
         name: inventory_helper
 
-    - debug:
-        var: consul_token
-
     - name: "Set Consul and SLM node facts"
       ansible.builtin.set_fact:
-        consul_url: "{{ consul_url | default(lookup('env', 'CONSUL_URL')) }}"
-        consul_token: "{{ consul_token | default(lookup('env', 'CONSUL_TOKEN')) }}"
+        consul_url: "{{ default(lookup('env', 'CONSUL_URL')) }}"
+        consul_token: "{{ default(lookup('env', 'CONSUL_TOKEN')) }}"
         slm_consul_node_name: "SLM"
 
     - name: GET /catalog/service/consul
