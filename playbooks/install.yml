@@ -8,6 +8,9 @@
       ansible.builtin.include_role:
         name: inventory_helper
 
+    - debug:
+        var: consul_token
+
     - name: "Set Consul and SLM node facts"
       ansible.builtin.set_fact:
         consul_url: "{{ consul_url | default(lookup('env', 'CONSUL_URL')) }}"
@@ -21,9 +24,6 @@
         headers:
           Authorization: "Bearer {{ consul_token }}"
       register: get_consul_slm_node
-
-    - debug:
-        var: get_consul_slm_node
 
     - name: Set public consul server url for localhost
       ansible.builtin.set_fact:
